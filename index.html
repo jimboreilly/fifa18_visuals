@@ -3,8 +3,10 @@
 <head>
   <script src="https://d3js.org/d3.v4.min.js"></script>
   <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
-
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 
   <style>
     body {
@@ -22,7 +24,12 @@
 <body>
   <div class="PlayerName"> </div>
   <svg id="potential" height="600" width="900"> </svg>
-  <svg id="growth" height="600" width="900"> </svg>
+  <p>
+    <label for="amount">Age range:</label>
+    <input type="text" id="amount" readonly style="border:0; color:#f6931f; font-weight:bold;">
+  </p>
+  <div id="slider-range"></div>
+  <!-- <svg id="growth" height="600" width="900"> </svg> -->
 
   <script id="code">
     var potentialSvg = d3.select("#potential");
@@ -37,28 +44,59 @@
     // Define variables outside the scope of the callback function.
     var playerData;
 
-    var overallScale;
-    var growthScale;
+    var ageRange = [21, 26];
 
     // This function will be applied to all rows. Select three columns, change names, and convert strings to numbers.
     function parseLine(line) {
       return {
         Name: line["name"],
         Overall: parseInt(line["overall"]),
-        Potential: parseInt(line["potential"])
+        Potential: parseInt(line["potential"]),
+        Age: parseInt(line["age"]),
+        Value: parseInt(line["eur_value"]),
       };
     }
 
     d3.csv("/data/Fifa18.csv", parseLine, function (error, data) {
       playerData = data;
-      console.log(playerData);
 
       playerData = playerData.map(function (player) {
         player.Growth = player.Potential - player.Overall
         return player
       });
 
-      console.log(playerData)
+      valueExtent = d3.extent(playerData, function (d) { return d.Value; });
+      ageExtent = d3.extent(playerData, function (d) { return d.Age; });
+
+      playerDataByOverall = groupByArray(playerData, 'Overall');
+
+      //key: Overall values: Array[key: Potential values: Array[Players @ (ovr, pot)]]
+      var playersByOverallAndPotential = playerDataByOverall.map(function (overall) {
+        var result = {
+          Overall: overall.key,
+          Potentials: new Array()
+        };
+        result.Potentials = groupByArray(overall.values, 'Potential');
+        return result;
+      })
+
+      $(function () {
+        $("#slider-range").slider({
+          range: true,
+          min: ageExtent[0],
+          max: ageExtent[1],
+          values: ageRange,
+          slide: function (event, ui) {
+            $("#amount").val(ui.values[0] + " - " + ui.values[1]);
+          },
+          stop: function (event, ui) {
+            ageRange = [ui.values[0], ui.values[1]];
+            console.log(ageRange);
+          }
+        });
+        $("#amount").val($("#slider-range").slider("values", 0) +
+          " - " + $("#slider-range").slider("values", 1));
+      });
 
       overallScale = d3.scaleLinear()
         .domain(d3.extent(playerData, function (d) { return d.Overall; }))
@@ -70,22 +108,18 @@
 
       growthScale = d3.scaleLinear()
         .domain(d3.extent(playerData, function (d) { return d.Growth; }))
-        .range([height - yPadding, yPadding])
+        .range([height - yPadding, yPadding]);
 
-      rainbowScale = d3.scaleSequential(d3.interpolateRainbow)
-        .domain(d3.extent(playerData, function (d) { return d.Potential; }))
+      discretePlasma = d3.scaleSequential(d3.interpolatePlasma)
+        .domain([0.2, 1.0]);
 
-      plasmaScale = d3.scaleSequential(d3.interpolatePlasma)
-        .domain(d3.extent(playerData, function (d) { return d.Potential; }).reverse())
-
-      plasmaScaleDiscrete = d3.scaleQuantize()
-        .domain(d3.extent(playerData, function (d) { return d.Potential; }))
-        .range(d3.schemeYlOrRd[6].slice(1))
-
+      discreteCool = d3.scaleSequential(d3.interpolateCool)
+        .domain([0.2, 1.0]);
 
       //drawOverallVsPotential(potentialSvg, playerData, overallScale, potentialScale);
-      drawOverallVsGrowth(potentialSvg, playerData, overallScale, growthScale, plasmaScale);
-      drawOverallVsGrowth(growthSvg, playerData, overallScale, growthScale, plasmaScaleDiscrete);
+      drawOverallVsGrowth(potentialSvg, playerData, overallScale, growthScale, discretePlasma);
+      //drawLessDots(potentialSvg, playersByOverallAndPotential, overallScale, growthScale)
+      // drawOverallVsGrowth(growthSvg, playerData, overallScale, growthScale, discreteCool);
 
     });
 
@@ -127,13 +161,17 @@
     }
 
     function drawOverallVsGrowth(svg, playerData, overallScale, growthScale, colorScale) {
+      ScaleDiscrete = d3.scaleQuantize()
+        .domain(d3.extent(playerData, function (d) { return d.Potential; }))
+        .range([1.0, 0.8, 0.6, 0.4, 0.2]);
+
       playerData.forEach(function (player) {
         svg.append("circle")
           .attr("cx", overallScale(player.Overall))
           .attr("cy", growthScale(player.Growth))
           .attr("r", 4)
-          //.style("opacity", 0.2)
-          .style("fill", colorScale(player.Potential))
+          .style("opacity", 0.2)
+          .style("fill", colorScale(ScaleDiscrete(player.Potential)))
           .on("mouseover", function () {
             svg.select("#PlayerName").text(player.Name);
           });
@@ -165,7 +203,55 @@
 
     }
 
+    function drawLessDots(svg, playerData, overallScale, growthScale) {
+      playerData.map(function (overallIndex) {
+        overallIndex.Potentials.map(function (potentialIndex) {
+          svg.append("circle")
+            .attr("cx", overallScale(overallIndex.Overall))
+            .attr("cy", growthScale(potentialIndex.key - overallIndex.Overall))
+            .attr("r", 4)
+            .style("fill", "#45b3e7")
+            .style("opacity", 0.06 * potentialIndex.values.length)
+        })
+      })
 
+      //x-axis, current overall rating
+      var bottomAxis = d3.axisBottom(overallScale)
+      svg.append("g")
+        .attr("transform", "translate(0," + (height - xPadding) + ")")
+        .attr("class", "xaxis")
+        .call(bottomAxis);
+
+      //y-axis, growth in overall
+      var leftAxis = d3.axisLeft(growthScale);
+      svg.append("g")
+        .attr("class", "yaxis")
+        .attr("transform", "translate(" + yPadding + ", 0)")
+        .call(leftAxis);
+
+      //x-axis label
+      svg.append("text")
+        .attr("transform", "translate(" + (width / 2.3) + "," + (height - (xPadding / 2)) + ")")
+        .text("Initial Overall");
+
+      //y-axis label, rotated to be vertical text
+      svg.append("text")
+        .attr("transform", "translate(" + yPadding / 3 + "," + (height / 1.7) + ")rotate(270)")
+        .text("Growth");
+
+    }
+
+  </script>
+
+  <script>
+    var groupByArray = function (xs, key) {
+      return xs.reduce(function (rv, x) {
+        let v = key instanceof Function ? key(x) : x[key];
+        let el = rv.find((r) => r && r.key === v);
+        if (el) { el.values.push(x); }
+        else { rv.push({ key: v, values: [x] }); } return rv;
+      }, []);
+    }
   </script>
 
 </body>
