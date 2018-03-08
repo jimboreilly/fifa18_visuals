@@ -17,6 +17,21 @@
       border: solid #ccc 1px;
       display: block;
       margin: auto;
+      margin-bottom: 20px;
+    }
+
+    .ui-slider {
+      position: relative;
+      text-align: left;
+      margin: auto;
+      width: 60%;
+    }
+
+    .left-center {
+      margin: auto;
+      width: 60%;
+      margin-top: 10px;
+      margin-bottom: 10px;
     }
   </style>
 </head>
@@ -24,11 +39,22 @@
 <body>
   <div class="PlayerName"> </div>
   <svg id="potential" height="600" width="900"> </svg>
-  <p>
-    <label for="amount">Age range:</label>
-    <input type="text" id="amount" readonly style="border:0; color:#f6931f; font-weight:bold;">
-  </p>
-  <div id="slider-range"></div>
+
+  <div>
+    <p class="left-center">
+      <label for="age">Age range:</label>
+      <input type="text" id="age" readonly style="border:0; color:#f6931f; font-weight:bold;">
+    </p>
+    <div id="age-range-slider" margin-bottom="10px"></div>
+  </div>
+
+  <div>
+    <p class="left-center">
+      <label for="value">Value range:</label>
+      <input type="text" id="value" readonly style="border:0; color:#f6931f; font-weight:bold;">
+    </p>
+    <div id="value-range-slider"></div>
+  </div>
   <!-- <svg id="growth" height="600" width="900"> </svg> -->
 
   <script id="code">
@@ -45,6 +71,7 @@
     var playerData;
 
     var ageRange = [21, 26];
+    var valueRange;
 
     // This function will be applied to all rows. Select three columns, change names, and convert strings to numbers.
     function parseLine(line) {
@@ -65,10 +92,28 @@
         return player
       });
 
-      valueExtent = d3.extent(playerData, function (d) { return d.Value; });
-      ageExtent = d3.extent(playerData, function (d) { return d.Age; });
 
-      playerDataByOverall = groupByArray(playerData, 'Overall');
+      ageExtent = d3.extent(playerData, function (d) { return d.Age; });
+      valueExtent = d3.extent(playerData, function (d) { return d.Value; });
+
+      valueRange = valueExtent;
+
+      initializeSliders(ageExtent, valueExtent);
+
+      update();
+    });
+
+    function update() {
+      potentialSvg.selectAll("g > *").remove();
+      potentialSvg.selectAll("text").remove();
+      potentialSvg.selectAll("circle").remove();
+
+      filteredData = playerData.filter(player =>
+        player.Age > ageRange[0] && player.Age < ageRange[1]
+        && player.Value > valueRange[0] && player.Value < valueRange[1]
+      );
+
+      playerDataByOverall = groupByArray(filteredData, 'Overall');
 
       //key: Overall values: Array[key: Potential values: Array[Players @ (ovr, pot)]]
       var playersByOverallAndPotential = playerDataByOverall.map(function (overall) {
@@ -79,24 +124,6 @@
         result.Potentials = groupByArray(overall.values, 'Potential');
         return result;
       })
-
-      $(function () {
-        $("#slider-range").slider({
-          range: true,
-          min: ageExtent[0],
-          max: ageExtent[1],
-          values: ageRange,
-          slide: function (event, ui) {
-            $("#amount").val(ui.values[0] + " - " + ui.values[1]);
-          },
-          stop: function (event, ui) {
-            ageRange = [ui.values[0], ui.values[1]];
-            console.log(ageRange);
-          }
-        });
-        $("#amount").val($("#slider-range").slider("values", 0) +
-          " - " + $("#slider-range").slider("values", 1));
-      });
 
       overallScale = d3.scaleLinear()
         .domain(d3.extent(playerData, function (d) { return d.Overall; }))
@@ -117,11 +144,10 @@
         .domain([0.2, 1.0]);
 
       //drawOverallVsPotential(potentialSvg, playerData, overallScale, potentialScale);
-      drawOverallVsGrowth(potentialSvg, playerData, overallScale, growthScale, discretePlasma);
-      //drawLessDots(potentialSvg, playersByOverallAndPotential, overallScale, growthScale)
+      //drawOverallVsGrowth(potentialSvg, playerData, overallScale, growthScale, discretePlasma);
+      drawLessDots(potentialSvg, playersByOverallAndPotential, overallScale, growthScale)
       // drawOverallVsGrowth(growthSvg, playerData, overallScale, growthScale, discreteCool);
-
-    });
+    }
 
     function drawOverallVsPotential(svg, playerData, overallScale, potentialScale) {
       playerData.forEach(function (player) {
@@ -211,7 +237,7 @@
             .attr("cy", growthScale(potentialIndex.key - overallIndex.Overall))
             .attr("r", 4)
             .style("fill", "#45b3e7")
-            .style("opacity", 0.06 * potentialIndex.values.length)
+            .style("opacity", 0.15 * potentialIndex.values.length)
         })
       })
 
@@ -241,9 +267,52 @@
 
     }
 
+    function initializeSliders(ageExtent, valueExtent) {
+      $(function () {
+        $("#age-range-slider").slider({
+          range: true,
+          min: ageExtent[0],
+          max: ageExtent[1],
+          values: ageRange,
+          slide: function (event, ui) {
+            $("#age").val(ui.values[0] + " - " + ui.values[1]);
+          },
+          stop: function (event, ui) {
+            ageRange = [ui.values[0], ui.values[1]];
+            update();
+          }
+        });
+        $("#age").val($("#age-range-slider").slider("values", 0) +
+          " - " + $("#age-range-slider").slider("values", 1));
+      });
+
+      $(function () {
+        $("#value-range-slider").slider({
+          range: true,
+          min: valueExtent[0],
+          max: valueExtent[1],
+          values: valueRange,
+          slide: function (event, ui) {
+            $("#value").val(numberWithCommas(ui.values[0]) + " - " + numberWithCommas(ui.values[1]));
+          },
+          stop: function (event, ui) {
+            valueRange = [ui.values[0], ui.values[1]];
+            update();
+          }
+        });
+        $("#value").val(numberWithCommas(valueExtent[0] + " - " + numberWithCommas(valueExtent[1])));
+      });
+
+    }
+
   </script>
 
   <script>
+
+    const numberWithCommas = (x) => {
+      return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
     var groupByArray = function (xs, key) {
       return xs.reduce(function (rv, x) {
         let v = key instanceof Function ? key(x) : x[key];
