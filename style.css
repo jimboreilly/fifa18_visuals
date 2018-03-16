@@ -1,0 +1,24 @@
+body {
+  font-family: 'Alegreya Sans', Calibri, sans-serif;
+}
+
+svg {
+  border: solid #ccc 1px;
+  display: block;
+  margin: auto;
+  margin-bottom: 20px;
+}
+
+.ui-slider {
+  position: relative;
+  text-align: left;
+  margin: auto;
+  width: 60%;
+}
+
+.left-center {
+  margin: auto;
+  width: 60%;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
