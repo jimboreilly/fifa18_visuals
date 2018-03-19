@@ -11,9 +11,23 @@ var playerData;
 
 var ageRange = [21, 26];
 var valueRange;
+var heightRange;
+var paceRange = [0, 100];
+var shotRange = [0, 100];;
 
-var numberWithCommas = (x) => {
-  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+var printNumAsEuros = (x) => {
+  return '€' + x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+var printNumAsFeetInches = (x) => {
+  var realFeet = ((x * 0.393700) / 12);
+  var feet = Math.floor(realFeet);
+  var inches = Math.round((realFeet - feet) * 12);
+  return (feet + "\'" + inches + "\'\'").toString();
+}
+
+var printNumAsHeight = (x) => {
+  return x.toString() + ' cm';
 }
 
 var groupByArray = function (xs, key) {
@@ -25,14 +39,17 @@ var groupByArray = function (xs, key) {
   }, []);
 }
 
-// This function will be applied to all rows. Select three columns, change names, and convert strings to numbers.
+// This function will be applied to all rows of Fifa18.csv
 function parseLine(line) {
   return {
     Name: line["name"],
     Overall: parseInt(line["overall"]),
     Potential: parseInt(line["potential"]),
     Age: parseInt(line["age"]),
+    Height: parseInt(line['height_cm']),
     Value: parseInt(line["eur_value"]),
+    Pace: parseInt(line['pac']),
+    Shot: parseInt(line['sho'])
   };
 }
 
@@ -44,13 +61,16 @@ d3.csv("data/Fifa18.csv", parseLine, function (error, data) {
     return player
   });
 
-
   ageExtent = d3.extent(playerData, function (d) { return d.Age; });
+  heightExtent = d3.extent(playerData, function (d) { return d.Height; });
   valueExtent = d3.extent(playerData, function (d) { return d.Value; });
+  paceExtent = d3.extent(playerData, function (d) { return d.Pace; });
+  shotExtent = d3.extent(playerData, function (d) { return d.Shot; });
 
+  heightRange = heightExtent;
   valueRange = valueExtent;
 
-  initializeSliders(ageExtent, valueExtent);
+  initializeSliders(ageExtent, heightExtent, valueExtent, paceExtent, shotExtent);
 
   update();
 });
@@ -63,6 +83,7 @@ function update() {
 
   filteredData = playerData.filter(player =>
     player.Age > ageRange[0] && player.Age < ageRange[1]
+    && player.Height > heightRange[0] && player.Height < heightRange[1]
     && player.Value > valueRange[0] && player.Value < valueRange[1]
   );
 
@@ -136,7 +157,6 @@ function plotGrowthOverInitialOverall(svg, playerData, overallScale, growthScale
 }
 
 function tableUpdate(potential, overall, players) {
-  console.log(players);
   rows = d3.select("table") // UPDATE
     .selectAll("tbody")
     .selectAll("tr")
@@ -147,13 +167,13 @@ function tableUpdate(potential, overall, players) {
   rows.enter() //ENTER + UPDATE
     .append('tr')
     .selectAll("td")
-    .data(function (d) { return [d.Name, d.Overall, d.Potential, d.Age, numberWithCommas(d.Value)] })
+    .data(function (d) { return [d.Name, d.Overall, d.Potential, d.Age, printNumAsEuros(d.Value)] })
     .enter()
     .append("td")
     .text(function (d) { return d; });
 
   var cells = rows.selectAll('td') //update existing cells
-    .data(function (d) { return [d.Name, d.Overall, d.Potential, d.Age, numberWithCommas(d.Value)]; })
+    .data(function (d) { return [d.Name, d.Overall, d.Potential, d.Age, printNumAsEuros(d.Value)]; })
     .text(function (d) { return d; });
 
   cells.enter()
@@ -164,7 +184,7 @@ function tableUpdate(potential, overall, players) {
 
 }
 
-function initializeSliders(ageExtent, valueExtent) {
+function initializeSliders(ageExtent, heightExtent, valueExtent) {
   $(function () {
     $("#age-range-slider").slider({
       range: true,
@@ -184,19 +204,71 @@ function initializeSliders(ageExtent, valueExtent) {
   });
 
   $(function () {
+    $("#height-range-slider").slider({
+      range: true,
+      min: heightExtent[0],
+      max: heightExtent[1],
+      values: heightRange,
+      slide: function (event, ui) {
+        $("#height").val(printNumAsFeetInches(ui.values[0]) + " - " + printNumAsFeetInches(ui.values[1]));
+      },
+      stop: function (event, ui) {
+        heightRange = [ui.values[0], ui.values[1]];
+        update();
+      }
+    });
+    $("#height").val(printNumAsFeetInches(heightExtent[0]) + " - " + printNumAsFeetInches(heightExtent[1]));
+  });
+
+  $(function () {
     $("#value-range-slider").slider({
       range: true,
       min: valueExtent[0],
       max: valueExtent[1],
       values: valueRange,
       slide: function (event, ui) {
-        $("#value").val(numberWithCommas(ui.values[0]) + " - " + numberWithCommas(ui.values[1]));
+        $("#value").val(printNumAsEuros(ui.values[0]) + " - " + printNumAsEuros(ui.values[1]));
       },
       stop: function (event, ui) {
         valueRange = [ui.values[0], ui.values[1]];
         update();
       }
     });
-    $("#value").val(numberWithCommas(valueExtent[0] + " - " + numberWithCommas(valueExtent[1])));
+    $("#value").val(printNumAsEuros(valueExtent[0] + " - " + printNumAsEuros(valueExtent[1])));
   });
+
+  $(function () {
+    $("#pace-range-slider").slider({
+      range: true,
+      min: 0,
+      max: 100,
+      values: paceRange,
+      slide: function (event, ui) {
+        $("#pace").val(ui.values[0] + " - " + ui.values[1]);
+      },
+      stop: function (event, ui) {
+        paceRange = [ui.values[0], ui.values[1]];
+        update();
+      }
+    });
+    $("#pace").val(paceRange[0].toString() + " - " + paceRange[1].toString());
+  });
+
+  $(function () {
+    $("#shot-range-slider").slider({
+      range: true,
+      min: 0,
+      max: 100,
+      values: shotRange,
+      slide: function (event, ui) {
+        $("#shooting").val(ui.values[0] + " - " + ui.values[1]);
+      },
+      stop: function (event, ui) {
+        shotRange = [ui.values[0], ui.values[1]];
+        update();
+      }
+    });
+    $("#shooting").val(shotRange[0].toString() + " - " + shotRange[1].toString())
+  });
+
 }
