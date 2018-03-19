@@ -1,37 +1,63 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <script src="https://d3js.org/d3.v4.min.js"></script>
-    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
-    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
-    <link rel="stylesheet" type="text/css" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <link rel="stylesheet" type="text/css" href="/style.css">
+<head>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
-    <title>FIFA 18 Player Stats</title>
-  </head>
-  <body>
-    <div class="PlayerName"> </div>
-    <svg id="potential" height="600" width="900"> </svg>
+  <link rel="stylesheet" type="text/css" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" type="text/css" href="/style.css">
 
-    <div>
-      <p class="left-center">
-        <label for="age">Age range:</label>
-        <input type="text" id="age" readonly style="border:0; color:#f6931f; font-weight:bold;">
-      </p>
-      <div id="age-range-slider" margin-bottom="10px"></div>
-    </div>
+  <title>FIFA 18 Player Stats</title>
+</head>
 
-    <div>
-      <p class="left-center">
-        <label for="value">Value range:</label>
-        <input type="text" id="value" readonly style="border:0; color:#f6931f; font-weight:bold;">
-      </p>
-      <div id="value-range-slider"></div>
-    </div>
-    <!-- <svg id="growth" height="600" width="900"> </svg> -->
+<body>
+  <div class="PlayerName"> </div>
+  <svg id="potential" height="600" width="900"> </svg>
 
-    <script type="text/javascript" src="/script.js"></script>
-  </body>
+  <div>
+    <p class="left-center">
+      <label for="age">Age range:</label>
+      <input type="text" id="age" readonly style="border:0; color:#f6931f; font-weight:bold;">
+    </p>
+    <div id="age-range-slider" margin-bottom="10px"></div>
+  </div>
+
+  <div>
+    <p class="left-center">
+      <label for="value">Value range:</label>
+      <input type="text" id="value" readonly style="border:0; color:#f6931f; font-weight:bold;">
+    </p>
+    <div id="value-range-slider"></div>
+  </div>
+  <table class="left-center">
+    <tr>
+      <th>Player</th>
+      <th>Overall</th>
+      <th>Potential</th>
+      <th>Age</th>
+      <th>Value</th>
+    </tr>
+    <tr>
+      <td>Jim Reilly</td>
+      <td>80</td>
+      <td>90</td>
+      <td>22</td>
+      <td>1,000,000</td>
+    </tr>
+    <tr>
+      <td>Steve Goodman</td>
+      <td>85</td>
+      <td>86</td>
+      <td>25</td>
+      <td>2,000,000</td>
+    </tr>
+  </table>
+  <!-- <svg id=" growth " height="600 " width="900 "> </svg> -->
+
+  <script type="text/javascript " src="/script.js "></script>
+</body>
+
 </html>

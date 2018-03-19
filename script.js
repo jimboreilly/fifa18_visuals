@@ -57,6 +57,8 @@ d3.csv("/data/Fifa18.csv", parseLine, function (error, data) {
 });
 
 function update() {
+
+  //remove all content from svg
   potentialSvg.selectAll("g > *").remove();
   potentialSvg.selectAll("text").remove();
   potentialSvg.selectAll("circle").remove();
@@ -191,6 +193,10 @@ function drawLessDots(svg, playerData, overallScale, growthScale) {
         .attr("r", 4)
         .style("fill", "#45b3e7")
         .style("opacity", 0.15 * potentialIndex.values.length)
+        .on("click", function () {
+          console.log(potentialIndex.values);
+          tableUpdate(potentialIndex.key, overallIndex.Overall, potentialIndex.values);
+        });
     })
   })
 
@@ -217,6 +223,34 @@ function drawLessDots(svg, playerData, overallScale, growthScale) {
   svg.append("text")
     .attr("transform", "translate(" + yPadding / 3 + "," + (height / 1.7) + ")rotate(270)")
     .text("Growth");
+
+}
+
+function tableUpdate(potential, overall, players) {
+  console.log(players);
+  rows = d3.select("table") // UPDATE
+    .selectAll("tr")
+    .data(players);
+
+  rows.exit().remove(); // EXIT
+
+  rows.enter() //ENTER + UPDATE
+    .append('tr')
+    .selectAll("td")
+    .data(function (d) { return [d.Name, d.Overall, d.Potential, d.Age, d.Value] })
+    .enter()
+    .append("td")
+    .text(function (d) { return d; });
+
+  var cells = rows.selectAll('td')
+    .data(function (d) { return [d.Name, d.Overall, d.Potential, d.Age, d.Value]; })
+    .text(function (d) { return d; });
+
+  cells.enter()
+    .append("td")
+    .text(function (d) { return d; });
+
+  cells.exit().remove();
 
 }
 
