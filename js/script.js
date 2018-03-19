@@ -90,12 +90,6 @@ function update() {
     .domain(d3.extent(playerData, function (d) { return d.Growth; }))
     .range([height - yPadding, yPadding]);
 
-  discretePlasma = d3.scaleSequential(d3.interpolatePlasma)
-    .domain([0.2, 1.0]);
-
-  discreteCool = d3.scaleSequential(d3.interpolateCool)
-    .domain([0.2, 1.0]);
-
   plotGrowthOverInitialOverall(potentialSvg, playersByOverallAndPotential, overallScale, growthScale)
 }
 
