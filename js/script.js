@@ -1,5 +1,4 @@
 var potentialSvg = d3.select("#potential");
-var growthSvg = d3.select("#growth")
 
 var width = potentialSvg.attr("width");
 var height = potentialSvg.attr("height");
@@ -57,7 +56,6 @@ d3.csv("data/Fifa18.csv", parseLine, function (error, data) {
 });
 
 function update() {
-
   //remove all content from svg
   potentialSvg.selectAll("g > *").remove();
   potentialSvg.selectAll("text").remove();
@@ -98,93 +96,10 @@ function update() {
   discreteCool = d3.scaleSequential(d3.interpolateCool)
     .domain([0.2, 1.0]);
 
-  //drawOverallVsPotential(potentialSvg, playerData, overallScale, potentialScale);
-  //drawOverallVsGrowth(potentialSvg, playerData, overallScale, growthScale, discretePlasma);
-  drawLessDots(potentialSvg, playersByOverallAndPotential, overallScale, growthScale)
-  // drawOverallVsGrowth(growthSvg, playerData, overallScale, growthScale, discreteCool);
+  plotGrowthOverInitialOverall(potentialSvg, playersByOverallAndPotential, overallScale, growthScale)
 }
 
-function drawOverallVsPotential(svg, playerData, overallScale, potentialScale) {
-  playerData.forEach(function (player) {
-    svg.append("circle")
-      .attr("cx", overallScale(player.Overall))
-      .attr("cy", potentialScale(player.Potential))
-      .attr("r", 4)
-      .style("opacity", 0.05)
-      .on("mouseover", function () {
-        svg.select("#PlayerName").text(player.Name);
-      });
-  })
-
-  //x-axis, current overall rating
-  var bottomAxis = d3.axisBottom(overallScale)
-  svg.append("g")
-    .attr("transform", "translate(0," + (height - xPadding) + ")")
-    .attr("class", "xaxis")
-    .call(bottomAxis);
-
-  //y-axis, potential overall
-  var leftAxis = d3.axisLeft(potentialScale);
-  svg.append("g")
-    .attr("class", "yaxis")
-    .attr("transform", "translate(" + yPadding + ", 0)")
-    .call(leftAxis);
-
-  //x-axis label, transformation based on trial/error
-  svg.append("text")
-    .attr("transform", "translate(" + (width / 2.3) + "," + (height - (xPadding / 2)) + ")")
-    .text("Overall");
-
-  //y-axis label, rotated to be vertical text and translated via trial/error
-  svg.append("text")
-    .attr("transform", "translate(" + yPadding / 3 + "," + (height / 1.7) + ")rotate(270)")
-    .text("Potential Overall");
-}
-
-function drawOverallVsGrowth(svg, playerData, overallScale, growthScale, colorScale) {
-  ScaleDiscrete = d3.scaleQuantize()
-    .domain(d3.extent(playerData, function (d) { return d.Potential; }))
-    .range([1.0, 0.8, 0.6, 0.4, 0.2]);
-
-  playerData.forEach(function (player) {
-    svg.append("circle")
-      .attr("cx", overallScale(player.Overall))
-      .attr("cy", growthScale(player.Growth))
-      .attr("r", 4)
-      .style("opacity", 0.2)
-      .style("fill", colorScale(ScaleDiscrete(player.Potential)))
-      .on("mouseover", function () {
-        svg.select("#PlayerName").text(player.Name);
-      });
-  })
-
-  //x-axis, current overall rating
-  var bottomAxis = d3.axisBottom(overallScale)
-  svg.append("g")
-    .attr("transform", "translate(0," + (height - xPadding) + ")")
-    .attr("class", "xaxis")
-    .call(bottomAxis);
-
-  //y-axis, growth in overall
-  var leftAxis = d3.axisLeft(growthScale);
-  svg.append("g")
-    .attr("class", "yaxis")
-    .attr("transform", "translate(" + yPadding + ", 0)")
-    .call(leftAxis);
-
-  //x-axis label
-  svg.append("text")
-    .attr("transform", "translate(" + (width / 2.3) + "," + (height - (xPadding / 2)) + ")")
-    .text("Initial Overall");
-
-  //y-axis label, rotated to be vertical text
-  svg.append("text")
-    .attr("transform", "translate(" + yPadding / 3 + "," + (height / 1.7) + ")rotate(270)")
-    .text("Growth");
-
-}
-
-function drawLessDots(svg, playerData, overallScale, growthScale) {
+function plotGrowthOverInitialOverall(svg, playerData, overallScale, growthScale) {
   playerData.map(function (overallIndex) {
     overallIndex.Potentials.map(function (potentialIndex) {
       svg.append("circle")
