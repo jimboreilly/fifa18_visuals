@@ -37,7 +37,7 @@ function parseLine(line) {
   };
 }
 
-d3.csv("/data/Fifa18.csv", parseLine, function (error, data) {
+d3.csv("data/Fifa18.csv", parseLine, function (error, data) {
   playerData = data;
 
   playerData = playerData.map(function (player) {
