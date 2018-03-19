@@ -229,6 +229,7 @@ function drawLessDots(svg, playerData, overallScale, growthScale) {
 function tableUpdate(potential, overall, players) {
   console.log(players);
   rows = d3.select("table") // UPDATE
+    .selectAll("tbody")
     .selectAll("tr")
     .data(players);
 
@@ -237,13 +238,13 @@ function tableUpdate(potential, overall, players) {
   rows.enter() //ENTER + UPDATE
     .append('tr')
     .selectAll("td")
-    .data(function (d) { return [d.Name, d.Overall, d.Potential, d.Age, d.Value] })
+    .data(function (d) { return [d.Name, d.Overall, d.Potential, d.Age, numberWithCommas(d.Value)] })
     .enter()
     .append("td")
     .text(function (d) { return d; });
 
-  var cells = rows.selectAll('td')
-    .data(function (d) { return [d.Name, d.Overall, d.Potential, d.Age, d.Value]; })
+  var cells = rows.selectAll('td') //update existing cells
+    .data(function (d) { return [d.Name, d.Overall, d.Potential, d.Age, numberWithCommas(d.Value)]; })
     .text(function (d) { return d; });
 
   cells.enter()
