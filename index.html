@@ -9,6 +9,7 @@
 
   <link rel="stylesheet" type="text/css" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
   <link rel="stylesheet" type="text/css" href="css/style.css">
+  <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 
   <title>FIFA 18 Player Stats</title>
 </head>
@@ -35,7 +36,7 @@
 
   <div id="PaceSlider">
     <p class="left-center">
-      <label for="pace">Pace range:</label>
+      <label for="pace">Minimum Pace Ability:</label>
       <input type="text" id="pace" readonly style="border:0; color:#f6931f; font-weight:bold;">
     </p>
     <div id="pace-range-slider"></div>
@@ -43,7 +44,7 @@
 
   <div id="ShootingSlider">
     <p class="left-center">
-      <label for="height">Shooting ability:</label>
+      <label for="height">Minimum Shooting Ability:</label>
       <input type="text" id="shooting" readonly style="border:0; color:#f6931f; font-weight:bold;">
     </p>
     <div id="shot-range-slider"></div>
@@ -57,27 +58,29 @@
     <div id="value-range-slider"></div>
   </div>
 
-  <table class="left-center">
-    <thead>
-      <tr>
-        <th>Player</th>
-        <th>Overall</th>
-        <th>Potential</th>
-        <th>Age</th>
-        <th>Value</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>P. Pogba</td>
-        <td>87</td>
-        <td>92</td>
-        <td>24</td>
-        <td>€66,500,000</td>
-      </tr>
-      </tr>
-    </tbody>
-  </table>
+  <div class="left-center">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th>Age</th>
+          <th>Height</th>
+          <th>Pace</th>
+          <th>Shooting</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>P. Pogba</td>
+          <td>24</td>
+          <td>6'3''</td>
+          <td>74</td>
+          <td>79</td>
+        </tr>
+        </tr>
+      </tbody>
+    </table>
+  </div>
   <!-- <svg id=" growth " height="600 " width="900 "> </svg> -->
 
   <script type="text/javascript " src="js/script.js "></script>

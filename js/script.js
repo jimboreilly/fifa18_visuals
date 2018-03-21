@@ -12,8 +12,8 @@ var playerData;
 var ageRange = [21, 26];
 var valueRange;
 var heightRange;
-var paceRange = [0, 100];
-var shotRange = [0, 100];;
+var paceMin = 50;
+var shotMin = 50;
 
 var printNumAsEuros = (x) => {
   return '€' + x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -82,9 +82,11 @@ function update() {
   potentialSvg.selectAll("circle").remove();
 
   filteredData = playerData.filter(player =>
-    player.Age > ageRange[0] && player.Age < ageRange[1]
-    && player.Height > heightRange[0] && player.Height < heightRange[1]
-    && player.Value > valueRange[0] && player.Value < valueRange[1]
+    player.Age >= ageRange[0] && player.Age <= ageRange[1]
+    && player.Height >= heightRange[0] && player.Height <= heightRange[1]
+    && player.Value >= valueRange[0] && player.Value <= valueRange[1]
+    && player.Shot >= shotMin
+    && player.Pace >= paceMin
   );
 
   playerDataByOverall = groupByArray(filteredData, 'Overall');
@@ -167,13 +169,13 @@ function tableUpdate(potential, overall, players) {
   rows.enter() //ENTER + UPDATE
     .append('tr')
     .selectAll("td")
-    .data(function (d) { return [d.Name, d.Overall, d.Potential, d.Age, printNumAsEuros(d.Value)] })
+    .data(function (d) { return [d.Name, d.Age, printNumAsFeetInches(d.Height), d.Pace, d.Shot] })
     .enter()
     .append("td")
     .text(function (d) { return d; });
 
   var cells = rows.selectAll('td') //update existing cells
-    .data(function (d) { return [d.Name, d.Overall, d.Potential, d.Age, printNumAsEuros(d.Value)]; })
+    .data(function (d) { return [d.Name, d.Age, printNumAsFeetInches(d.Height), d.Pace, d.Shot]; })
     .text(function (d) { return d; });
 
   cells.enter()
@@ -193,10 +195,11 @@ function initializeSliders(ageExtent, heightExtent, valueExtent) {
       values: ageRange,
       slide: function (event, ui) {
         $("#age").val(ui.values[0] + " - " + ui.values[1]);
-      },
-      stop: function (event, ui) {
         ageRange = [ui.values[0], ui.values[1]];
         update();
+      },
+      stop: function (event, ui) {
+
       }
     });
     $("#age").val($("#age-range-slider").slider("values", 0) +
@@ -211,10 +214,11 @@ function initializeSliders(ageExtent, heightExtent, valueExtent) {
       values: heightRange,
       slide: function (event, ui) {
         $("#height").val(printNumAsFeetInches(ui.values[0]) + " - " + printNumAsFeetInches(ui.values[1]));
-      },
-      stop: function (event, ui) {
         heightRange = [ui.values[0], ui.values[1]];
         update();
+      },
+      stop: function (event, ui) {
+
       }
     });
     $("#height").val(printNumAsFeetInches(heightExtent[0]) + " - " + printNumAsFeetInches(heightExtent[1]));
@@ -228,10 +232,11 @@ function initializeSliders(ageExtent, heightExtent, valueExtent) {
       values: valueRange,
       slide: function (event, ui) {
         $("#value").val(printNumAsEuros(ui.values[0]) + " - " + printNumAsEuros(ui.values[1]));
-      },
-      stop: function (event, ui) {
         valueRange = [ui.values[0], ui.values[1]];
         update();
+      },
+      stop: function (event, ui) {
+
       }
     });
     $("#value").val(printNumAsEuros(valueExtent[0] + " - " + printNumAsEuros(valueExtent[1])));
@@ -239,36 +244,37 @@ function initializeSliders(ageExtent, heightExtent, valueExtent) {
 
   $(function () {
     $("#pace-range-slider").slider({
-      range: true,
+      range: "max",
       min: 0,
       max: 100,
-      values: paceRange,
+      value: 50,
       slide: function (event, ui) {
-        $("#pace").val(ui.values[0] + " - " + ui.values[1]);
+        $("#pace").val(ui.value);
+        paceMin = ui.value;
+        update();
       },
       stop: function (event, ui) {
-        paceRange = [ui.values[0], ui.values[1]];
-        update();
+        console.log(ui.value)
       }
     });
-    $("#pace").val(paceRange[0].toString() + " - " + paceRange[1].toString());
+    $("#pace").val("50")
   });
 
   $(function () {
     $("#shot-range-slider").slider({
-      range: true,
+      range: "max",
       min: 0,
       max: 100,
-      values: shotRange,
+      value: 50,
       slide: function (event, ui) {
-        $("#shooting").val(ui.values[0] + " - " + ui.values[1]);
+        $("#shooting").val(ui.value);
+        shotMin = ui.value;
+        update();
       },
       stop: function (event, ui) {
-        shotRange = [ui.values[0], ui.values[1]];
-        update();
       }
     });
-    $("#shooting").val(shotRange[0].toString() + " - " + shotRange[1].toString())
+    $("#shooting").val("50")
   });
 
 }
